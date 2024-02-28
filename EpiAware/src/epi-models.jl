@@ -25,6 +25,10 @@ struct EpiData{T <: Real, F <: Function}
     end
 end
 
+function transform(ep::EpiData; gen_int = ep.gen_int, transformation = ep.transformation)
+    return EpiData(gen_int, transformation)
+end
+
 struct DirectInfections{S <: Sampleable} <: AbstractEpiModel
     data::EpiData
     initialisation_prior::S

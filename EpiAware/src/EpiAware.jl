@@ -38,6 +38,9 @@ export create_discrete_pmf, spread_draws, scan
 export EpiData, Renewal, ExpGrowthRate, DirectInfections, AbstractEpiModel,
        AbstractLatentModel, AbstractObservationModel
 
+# Exported functions for working with types
+export transform
+
 # Exported Turing model constructors
 export make_epi_aware
 

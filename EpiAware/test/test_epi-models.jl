@@ -28,6 +28,40 @@ end
     @test sum(data.gen_int) ≈ 1
 end
 
+@testitem "Transform EpiData Tests" begin
+    gen_int = [0.2, 0.3, 0.5]
+    transformation = exp
+    data = EpiData(gen_int, transformation)
+
+    @testset "EpiData transformation maintaining original values" begin
+        # Transform without providing new values
+        transformed_data = transform(data)
+
+        @test length(transformed_data.gen_int) == 3
+        @test sum(transformed_data.gen_int) ≈ 1
+        @test transformed_data.gen_int == gen_int
+        @test transformed_data.transformation === transformation
+    end
+
+    @testset "EpiData transformation with new gen_int" begin
+        new_gen_int = [0.1, 0.2, 0.6, 0.1]
+        transformed_data = transform(data, gen_int = new_gen_int)
+
+        @test length(transformed_data.gen_int) == 4
+        @test sum(transformed_data.gen_int) ≈ 1
+        @test transformed_data.transformation === transformation
+    end
+
+    @testset "EpiData transformation with new transformation function" begin
+        new_transformation = log
+        transformed_data = transform(data, transformation = new_transformation)
+
+        @test transformed_data.transformation == log
+        # Test the transformation with an example value
+        @test new_transformation(1.0) == 0.0
+    end
+end
+
 @testitem "Renewal function: internal generate infs" begin
     using LinearAlgebra, Distributions
     gen_int = [0.2, 0.3, 0.5]
