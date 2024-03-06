@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.39
+# v0.19.40
 
 using Markdown
 using InteractiveUtils
@@ -88,14 +88,14 @@ In `EpiAware` we provide a constructor for random walk latent models with priors
 ```math
 \begin{align}
 Z_0 &\sim \mathcal{N}(0,1),\\
-\sigma^2_Z &\sim \text{HalfNormal}(0.01).
+\sigma^2_Z &\sim \text{HalfNormal}(0.02) | \sigma^2_Z < 0.1.
 \end{align}
 ```
 "
 
 # ╔═╡ 56ae496b-0094-460b-89cb-526627991717
 rwp = EpiAware.RandomWalk(Normal(),
-    truncated(Normal(0.0, 0.02), 0.0, Inf))
+    truncated(Normal(0.0, 0.02), 0.0, 0.1))
 
 # ╔═╡ 767beffd-1ef5-4e6c-9ac6-edb52e60fb44
 md"
@@ -149,7 +149,7 @@ as the action of a sparse kernel on the infections $I(t)$.
 ```math
 \begin{align}
 y_t &\sim \text{NegBinomial}(\mu = \sum_{s\geq 0} K[t, t-s] I(s), r), \\
-1 / r &\sim \text{Gamma}(3, 0.05/3).
+1 / r &\sim \text{Gamma}(3, 0.05/3) | (1 / r) < 0.1.
 \end{align}
 ```
 "
@@ -171,7 +171,7 @@ We choose a simple observation model where infections are observed 0, 1, 2, 3 da
 obs_model = EpiAware.DelayObservations(
     fill(0.25, 4),
     time_horizon,
-    truncated(Gamma(5, 0.05 / 5), 1e-3, 1.0)
+    truncated(Gamma(5, 0.05 / 5), 1e-3, 0.1)
 )
 
 # ╔═╡ e49713e8-4840-4083-8e3f-fc52d791be7b
@@ -236,8 +236,13 @@ However, we now treat the generated data as `truth_data` and make inference with
 We do the inference by MCMC/NUTS using the `Turing` NUTS sampler with default warm-up steps.
 "
 
+# ╔═╡ 67650872-80c7-43ea-bf7d-7e564298d180
+p_missing_data = 0.025
+
 # ╔═╡ c8ce0d46-a160-4c40-a055-69b3d10d1770
-truth_data = generated_obs
+truth_data = map(generated_obs) do y_t
+    rand() < p_missing_data ? missing : y_t
+end
 
 # ╔═╡ b4033728-b321-4100-8194-1fd9fe2d268d
 inference_mdl = fix(
@@ -247,7 +252,7 @@ inference_mdl = fix(
 )
 
 # ╔═╡ 3eb5ec5e-aae7-478e-84fb-80f2e9f85b4c
-chn = sample(inference_mdl,
+@time chn = sample(inference_mdl,
     NUTS(; adtype = AutoReverseDiff(true)),
     MCMCThreads(),
     250,
@@ -296,6 +301,15 @@ let
         layout = (1, 2),
         size = (700, 400))
 end
+
+# ╔═╡ 0a560383-6bea-45bd-aa84-2a45cd3995da
+post_check_mdl = fix(full_epi_aware_mdl, (rw_init = 0.0,))
+
+# ╔═╡ 9784aacc-18db-4cd6-a206-51d5ebb8e841
+generated_quantities(inference_mdl, chn)
+
+# ╔═╡ 3a00ee77-0cc6-4762-b1c1-a834172ac1be
+chn
 
 # ╔═╡ fd6321b1-4c3a-4123-b0dc-c45b951e0b80
 md"
@@ -383,11 +397,15 @@ end
 # ╠═a04f3c1b-7e11-4800-9c2a-9fc0021de6e7
 # ╟─f68b4e41-ac5c-42cd-a8c2-8761d66f7543
 # ╟─b5bc8f05-b538-4abf-aa84-450bf2dff3d9
+# ╠═67650872-80c7-43ea-bf7d-7e564298d180
 # ╠═c8ce0d46-a160-4c40-a055-69b3d10d1770
 # ╠═b4033728-b321-4100-8194-1fd9fe2d268d
 # ╠═3eb5ec5e-aae7-478e-84fb-80f2e9f85b4c
 # ╟─30498cc7-16a5-441a-b8cd-c19b220c60c1
 # ╠═e9df22b8-8e4d-4ab7-91ea-c01f2239b3e5
+# ╠═0a560383-6bea-45bd-aa84-2a45cd3995da
+# ╠═9784aacc-18db-4cd6-a206-51d5ebb8e841
+# ╠═3a00ee77-0cc6-4762-b1c1-a834172ac1be
 # ╟─fd6321b1-4c3a-4123-b0dc-c45b951e0b80
 # ╠═10d8fe24-83a6-47ac-97b7-a374481473d3
 # ╟─81efe8ca-b753-4a12-bafc-a887a999377b
