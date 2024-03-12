@@ -1,14 +1,33 @@
 """
-Generate an observation kernel matrix based on the given delay interval and time horizon.
+Generate an observation kernel matrix corresponding to discrete delay interval `delay_int`
+and with size `time_horizon`.
 
-# Arguments
-- `delay_int::Vector{Float64}`: The delay PMF vector.
-- `time_horizon::Int`: The number of time steps of the observation period.
+## Mathematical specification
+
+A common delay model for case data ``y_t`` with the discrete delay distribution ``d`` and
+unobserved infections ``I_t`` is,
+
+```math
+y_t = \sum_{j\geq 0} I_{t-j} d_j.
+```
+NB:
+
+- The first position in the `delay_int` vector corresponds to zero time lag between
+unobserved infection and becoming a case.
+- This model assumes that all infections become a case; this is only appropriate for models
+with no population size.
+
+The action of the discrete delay distribution can be replicated for a time series of length
+`time_horizon` by constructing a matrix `K` such that,
+
+```math
+y = K_d I.
+```
 
 # Returns
 - `K::SparseMatrixCSC{Float64, Int}`: The observation kernel matrix.
 """
-function generate_observation_kernel(delay_int, time_horizon)
+function _generate_observation_kernel(delay_int, time_horizon)
     K = zeros(eltype(delay_int), time_horizon, time_horizon) |> SparseMatrixCSC
     for i in 1:time_horizon, j in 1:time_horizon
         m = i - j
@@ -29,7 +48,7 @@ struct DelayObservations{T <: AbstractFloat, S <: Sampleable} <: AbstractObserva
         @assert all(delay_int .>= 0) "Delay interval must be non-negative"
         @assert sum(delay_int)≈1 "Delay interval must sum to 1"
 
-        K = generate_observation_kernel(delay_int, time_horizon)
+        K = _generate_observation_kernel(delay_int, time_horizon)
 
         new{eltype(K), typeof(neg_bin_cluster_factor_prior)}(K,
             neg_bin_cluster_factor_prior)

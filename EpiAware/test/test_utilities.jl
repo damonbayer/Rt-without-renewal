@@ -118,7 +118,7 @@ end
     end
 end
 
-@testitem "Testing generate_observation_kernel function" begin
+@testitem "Testing _generate_observation_kernel function" begin
     using SparseArrays
     @testset "Test case 1" begin
         delay_int = [0.2, 0.5, 0.3]
@@ -128,7 +128,7 @@ end
                                       0.3 0.5 0.2 0 0
                                       0 0.3 0.5 0.2 0
                                       0 0 0.3 0.5 0.2])
-        K = EpiAware.generate_observation_kernel(delay_int, time_horizon)
+        K = EpiAware._generate_observation_kernel(delay_int, time_horizon)
         @test K == expected_K
     end
 end
