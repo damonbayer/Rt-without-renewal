@@ -10,6 +10,10 @@ abstract type AbstractEpiModel <: AbstractModel end
 
 abstract type AbstractLatentModel <: AbstractModel end
 
+"""
+The abstract supertype for all structs that define a model for generating observed case data
+and/or generative modeling of case data.
+"""
 abstract type AbstractObservationModel <: AbstractModel end
 
 @doc raw"""
@@ -36,5 +40,13 @@ end
 
 function generate_latent(latent_model::AbstractLatentModel, n)
     @info "No concrete implementation for generate_latent is defined."
+    return nothing
+end
+
+function generate_observations(observation_model::AbstractObservationModel,
+        y_t,
+        I_t;
+        pos_shift)
+    @info "No concrete implementation for `generate_observations` is defined."
     return nothing
 end
