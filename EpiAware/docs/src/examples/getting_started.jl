@@ -177,7 +177,7 @@ We also set up the inference to occur over 100 days.
 "
 
 # ╔═╡ c7580ae6-0db5-448e-8b20-4dd6fcdb1ae0
-time_horizon = 100
+time_horizon = 30
 
 # ╔═╡ 0aa3fcbd-0831-45b8-9a2c-7ffbabf5895f
 md"
@@ -290,6 +290,9 @@ To make NUTS more robust we provide `manypathfinder`, which is built on pathfind
 
 `manypathfinder` differs from `Pathfinder.multipathfinder`; `multipathfinder` is aimed at sampling from a potentially non-Gaussian target distribution which is first approximated as a uniformly weighted collection of normal approximations from pathfinder runs. `manypathfinder` is aimed at moving rapidly to a 'good' part of parameter space, and is robust to runs that fail.
 "
+
+# ╔═╡ 83389965-7e63-4cf6-bada-cb521b6a6257
+best_pf = pathfinder(inference_mdl; adtype = AutoReverseDiff(true))
 
 # ╔═╡ 073a1d40-456a-450e-969f-11b23eb7fd1f
 md"
@@ -418,15 +421,6 @@ let
         lw = 2)
 end
 
-# ╔═╡ 83389965-7e63-4cf6-bada-cb521b6a6257
-best_pf = pathfinder(inference_mdl; adtype = AutoReverseDiff(true))
-
-# ╔═╡ 197a4fbb-b71a-475a-bb78-28ff613e3094
-# ╠═╡ disabled = true
-#=╠═╡
-best_pf = manypathfinder(inference_mdl, 10; nruns = 20, executor = Transducers.ThreadedEx());
-  ╠═╡ =#
-
 # ╔═╡ Cell order:
 # ╠═c593a2a0-d7f5-11ee-0931-d9f65ae84a72
 # ╟─3ebc8384-f73d-4597-83a7-07a3744fed61
@@ -465,7 +459,6 @@ best_pf = manypathfinder(inference_mdl, 10; nruns = 20, executor = Transducers.T
 # ╟─32638954-2c99-4d4e-8e03-52154030c657
 # ╠═b4033728-b321-4100-8194-1fd9fe2d268d
 # ╟─9222b436-9445-4039-abbf-25c8cddb7f63
-# ╠═197a4fbb-b71a-475a-bb78-28ff613e3094
 # ╠═83389965-7e63-4cf6-bada-cb521b6a6257
 # ╟─073a1d40-456a-450e-969f-11b23eb7fd1f
 # ╠═0379b058-4c35-440a-bc01-aafa0178bdbf
